@@ -95,7 +95,21 @@
             class="achievement-item"
             :style="{ borderColor: getRarityColor(achievement.rarity) }"
           >
-            <div class="achievement-icon">{{ achievement.icon }}</div>
+            <div class="achievement-icon-wrapper">
+              <div class="achievement-icon">{{ achievement.icon }}</div>
+              <q-tooltip
+                class="bg-dark text-white text-body2"
+                anchor="top middle"
+                self="bottom middle"
+                :offset="[0, 10]"
+              >
+                <div class="text-weight-bold q-mb-xs">{{ getIconMeaning(achievement.icon) }}</div>
+                <div>{{ achievement.description }}</div>
+                <div class="text-caption q-mt-xs" :style="{ color: getRarityColor(achievement.rarity) }">
+                  {{ getRarityLabel(achievement.rarity) }}
+                </div>
+              </q-tooltip>
+            </div>
             <div
               class="achievement-name text-weight-bold q-mt-sm"
               :style="{ color: getRarityColor(achievement.rarity) }"
@@ -503,6 +517,58 @@ function getRarityLabel(rarity) {
   return RARITY_LABELS[rarity] || 'Yaygın'
 }
 
+function getIconMeaning(icon) {
+  const iconMeanings = {
+    '🌱': 'Fide - Yeni başlangıç',
+    '🌿': 'Dal - Büyüme',
+    '🍀': 'Yonca - Şans',
+    '🌸': 'Çiçek - Gelişim',
+    '🌺': 'Orkide - Güzellik',
+    '🌻': 'Ayçiçeği - Işık',
+    '🌼': 'Papatya - Saflık',
+    '🏵️': 'Rozet - Onur',
+    '💐': 'Buket - Başarı',
+    '🌹': 'Gül - Tutku',
+    '🌲': 'Ağaç - Güç',
+    '🌳': 'Yapraklı Ağaç - Olgunluk',
+    '🌴': 'Palmiye - Zafer',
+    '🎋': 'Bambu - Esneklik',
+    '🎍': 'Süsleme - Kutlama',
+    '🌾': 'Buğday - Bolluk',
+    '☘️': 'Üçlü Yonca - Bereket',
+    '🍃': 'Yapraklar - Barış',
+    '🪴': 'Saksı - Yetiştirme',
+    '🔥': 'Ateş - Tutku ve Kararlılık',
+    '⚡': 'Şimşek - Hız ve Güç',
+    '💫': 'Yıldız - Parlaklık',
+    '✨': 'Işıltı - Sihir',
+    '🌟': 'Parlak Yıldız - Mükemmellik',
+    '⭐': 'Yıldız - Başarı',
+    '🏆': 'Kupa - Şampiyonluk',
+    '🎖️': 'Askeri Madalya - Kahramanlık',
+    '🥇': 'Altın Madalya - Birinci',
+    '🥈': 'Gümüş Madalya - İkinci',
+    '🥉': 'Bronz Madalya - Üçüncü',
+    '👑': 'Taç - Krallık',
+    '💎': 'Elmas - Değer',
+    '🎯': 'Hedef - Odaklanma',
+    '🎪': 'Sirk - Eğlence',
+    '🎨': 'Palet - Yaratıcılık',
+    '🎭': 'Maskeler - Duygu',
+    '🎬': 'Film - Hikaye',
+    '📚': 'Kitaplar - Bilgi',
+    '💡': 'Ampul - Fikir',
+    '🌈': 'Gökkuşağı - Umut',
+    '☀️': 'Güneş - Aydınlık',
+    '🌙': 'Ay - Huzur',
+    '🦋': 'Kelebek - Dönüşüm',
+    '🕊️': 'Güvercin - Barış',
+    '💝': 'Kalp - Sevgi',
+    '💖': 'Parlak Kalp - Derin Sevgi'
+  }
+  return iconMeanings[icon] || 'Özel Rozet'
+}
+
 function getCriteriaColor(value) {
   if (value >= 80) return '#43e97b'
   if (value >= 60) return '#4facfe'
@@ -686,10 +752,21 @@ async function deleteStory() {
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
 }
 
+.achievement-icon-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
 .achievement-icon {
   font-size: 56px;
   margin-bottom: 12px;
   animation: float 3s ease-in-out infinite;
+  cursor: help;
+  transition: all 0.3s ease;
+}
+
+.achievement-icon:hover {
+  transform: scale(1.2) rotate(5deg);
 }
 
 @keyframes float {

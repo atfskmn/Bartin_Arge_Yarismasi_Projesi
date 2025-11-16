@@ -11,6 +11,10 @@
             <q-icon name="schedule" size="xs" class="q-mr-xs" />
             {{ formattedDate }}
           </div>
+          <div v-if="story.location" class="text-caption text-green q-mt-xs">
+            <q-icon name="location_on" size="xs" class="q-mr-xs" />
+            {{ story.location.name || `${story.location.lat.toFixed(4)}, ${story.location.lng.toFixed(4)}` }}
+          </div>
         </div>
         <div class="col-auto">
           <q-chip color="purple" text-color="white" icon="psychology">

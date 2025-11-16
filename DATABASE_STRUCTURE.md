@@ -50,6 +50,12 @@ Kullanıcıların toplulukla paylaştığı empati hikayeleri.
     culturalAwareness: number,    // Kültürel farkındalık (0-15)
     personalConnection: number    // Kişisel bağlantı (0-15)
   },
+  location: {                     // OPSİYONEL: Konum bilgisi
+    lat: number,                  // Enlem
+    lng: number,                  // Boylam
+    name: string,                 // Şehir/konum adı
+    fullAddress: string           // Tam adres
+  },
   createdAt: Timestamp            // Firebase serverTimestamp()
 }
 ```
@@ -220,6 +226,68 @@ const q = query(
    - `stories` - Paylaşılan hikayeler
    - `analyses` - Empati analizleri
    - `userActivities` - Kullanıcı hareketleri
+   - `userPresence` - Kullanıcı çevrimiçi durumu
+   - `messages` - Kullanıcılar arası mesajlar
+
+---
+
+## Yeni Eklenen Koleksiyonlar
+
+### 6. `userPresence` - Kullanıcı Çevrimiçi Durumu
+
+Kullanıcıların çevrimiçi/çevrimdışı durumunu takip eder.
+
+**Document ID**: `{userId}` (Firebase Auth UID)
+
+**Fields**:
+
+```javascript
+{
+  uid: string,              // Kullanıcı UID
+  displayName: string,      // Kullanıcı adı
+  email: string,            // E-posta
+  isOnline: boolean,        // Çevrimiçi mi?
+  lastSeen: Timestamp       // Son görülme zamanı
+}
+```
+
+**Güvenlik Kuralları**:
+
+- ✅ Giriş yapan kullanıcılar okuyabilir
+- ✅ Sadece kendi durumunu güncelleyebilir
+
+**Kullanım**: Kullanıcı giriş yaptığında otomatik güncellenir, her 2 dakikada bir yenilenir
+
+---
+
+### 7. `messages` - Kullanıcılar Arası Mesajlar
+
+Kullanıcılar arasındaki özel mesajları saklar.
+
+**Document ID**: Auto-generated
+
+**Fields**:
+
+```javascript
+{
+  fromUid: string,          // Gönderen kullanıcı UID
+  fromName: string,         // Gönderen kullanıcı adı
+  toUid: string,            // Alıcı kullanıcı UID
+  toName: string,           // Alıcı kullanıcı adı
+  text: string,             // Mesaj metni
+  read: boolean,            // Okundu mu?
+  createdAt: Timestamp      // Gönderilme zamanı
+}
+```
+
+**Güvenlik Kuralları**:
+
+- ✅ Mesajı gönderen veya alan okuyabilir
+- ✅ Giriş yapan kullanıcılar mesaj gönderebilir
+- ✅ Alıcı mesajı güncelleyebilir (okundu işareti için)
+- ✅ Gönderen veya alan mesajı silebilir
+
+**Kullanım**: ChatDialog bileşeni ile gerçek zamanlı mesajlaşma
 
 ---
 
@@ -232,3 +300,7 @@ const q = query(
 📊 **Analitik**: `userActivities` koleksiyonu platform istatistikleri için kullanılabilir
 
 🔒 **Güvenlik**: Tüm koleksiyonlar Firebase güvenlik kuralları ile korunur
+
+💬 **Mesajlaşma**: `messages` koleksiyonu şifreli değil, hassas bilgi paylaşımı önerilmez
+
+🟢 **Aktif Kullanıcılar**: 5 dakika içinde aktivite gösterenler çevrimiçi sayılır

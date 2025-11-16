@@ -47,7 +47,9 @@ export default defineConfig((ctx) => {
 
       // publicPath: '/',
       // analyze: true,
-      // env: {},
+      env: {
+        APP_TITLE: 'Arge Proje Pazarı 2025 Uygulama Web Sitesi',
+      },
       // rawDefine: {}
       // ignorePublicFolder: true,
       // minify: false,

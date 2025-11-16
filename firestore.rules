@@ -39,5 +39,27 @@ service cloud.firestore {
       allow update: if request.auth != null && request.auth.uid == userId;
       allow delete: if request.auth != null && request.auth.uid == userId;
     }
+    
+    // User Presence collection - kullanıcıların çevrimiçi durumu
+    match /userPresence/{userId} {
+      allow read: if request.auth != null; // Giriş yapmış herkes görebilir
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Messages collection - mesajlaşma
+    match /messages/{messageId} {
+      // Mesajı gönderen veya alan okuyabilir
+      allow read: if request.auth != null && 
+                  (request.auth.uid == resource.data.fromUid || 
+                   request.auth.uid == resource.data.toUid);
+      // Giriş yapan herkes mesaj gönderebilir
+      allow create: if request.auth != null && request.resource.data.fromUid == request.auth.uid;
+      // Sadece mesaj alan kişi güncelleyebilir (okundu işaretlemek için)
+      allow update: if request.auth != null && request.auth.uid == resource.data.toUid;
+      // Mesajı gönderen veya alan silebilir
+      allow delete: if request.auth != null && 
+                    (request.auth.uid == resource.data.fromUid || 
+                     request.auth.uid == resource.data.toUid);
+    }
   }
 }

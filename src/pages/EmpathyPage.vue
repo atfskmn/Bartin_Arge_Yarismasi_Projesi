@@ -275,26 +275,52 @@
                     v-model="userStory"
                     autogrow
                     :rows="8"
-                    placeholder="✨ Hikayenizi buraya yazın... Duygularınızı, deneyimlerinizi ve düşüncelerinizi paylaşın."
+                    placeholder="✨ Hikayenizi buraya yazın... Duygularınızı, deneyimlerinizi ve düşüncelerinizi paylaşın. (Konum otomatik alınacak)"
                     class="story-input"
                     :rules="[val => val.length >= 20 || 'En az 20 karakter gerekli', val => val.length <= 2000 || 'Maksimum 2000 karakter']"
                     counter
                     maxlength="2000"
                   >
                     <template v-slot:append>
-                      <q-btn
-                        round
-                        dense
-                        flat
-                        icon="emoji_emotions"
-                        @click="showEmojiPicker = !showEmojiPicker"
-                        color="purple"
-                        class="emoji-btn"
-                      >
-                        <q-tooltip>Emoji Ekle</q-tooltip>
-                      </q-btn>
+                      <div class="row q-gutter-xs">
+                        <q-btn
+                          round
+                          dense
+                          flat
+                          icon="emoji_emotions"
+                          @click="showEmojiPicker = !showEmojiPicker"
+                          color="purple"
+                          class="emoji-btn"
+                        >
+                          <q-tooltip>Emoji Ekle</q-tooltip>
+                        </q-btn>
+                      </div>
                     </template>
                   </q-input>
+
+                  <!-- Konum Gösterimi -->
+                  <transition name="fade">
+                    <div v-if="selectedLocation" class="location-display q-mt-sm">
+                      <q-chip
+                        color="green"
+                        text-color="white"
+                        icon="location_on"
+                        class="location-chip"
+                      >
+                        📍 {{ selectedLocation.name || `${selectedLocation.lat.toFixed(4)}, ${selectedLocation.lng.toFixed(4)}` }}
+                      </q-chip>
+                    </div>
+                    <div v-else-if="loadingLocation" class="location-display q-mt-sm">
+                      <q-chip
+                        color="grey"
+                        text-color="white"
+                        icon="gps_fixed"
+                        class="location-chip"
+                      >
+                        Konum aliniyor...
+                      </q-chip>
+                    </div>
+                  </transition>
                 </div>
 
                 <!-- Emoji Picker -->
@@ -753,6 +779,10 @@
             <div class="col">
               <div class="text-h5 text-weight-bold">{{ selectedStory?.username }}</div>
               <div class="text-caption">{{ formatDate(selectedStory?.createdAt) }}</div>
+              <div v-if="selectedStory?.location" class="text-caption q-mt-xs">
+                <q-icon name="location_on" size="xs" class="q-mr-xs" />
+                {{ selectedStory.location.name || `${selectedStory.location.lat.toFixed(4)}, ${selectedStory.location.lng.toFixed(4)}` }}
+              </div>
             </div>
             <div class="col-auto">
               <q-btn
@@ -909,6 +939,10 @@ const isRecording = ref(false)
 const transcription = ref('')
 const recognition = ref(null)
 
+// Konum sistemi
+const selectedLocation = ref(null)
+const loadingLocation = ref(false)
+
 // Örnek hikayeler
 const exampleStories = [
   'Sınıfımıza yeni gelen Suriyeli bir öğrenci vardı. İlk günlerde çok çekingen ve yalnızdı. Dili yeterince bilmediği için derslerde zorlanıyordu. Ben yanına oturdum ve yavaş yavaş arkadaş olduk. Ona Türkçe öğretmeye çalıştım, o da bana Arapça birkaç kelime öğretti. Zamanla onun ne kadar cesur ve güçlü biri olduğunu anladım. Ailesini, evini geride bırakmış, yeni bir hayata başlamaya çalışıyordu. Onun gözlerindeki umut, bana hayatın zorluklarına rağmen nasıl güçlü kalınabileceğini öğretti.',
@@ -969,7 +1003,83 @@ function clearStory() {
   userStory.value = ''
   empathyScore.value = null
   showEmojiPicker.value = false
+  selectedLocation.value = null
   $q.notify({ type: 'info', message: 'Hikaye temizlendi', icon: 'delete' })
+}
+
+// Konum fonksiyonları
+function autoGetLocation() {
+  if (!navigator.geolocation) {
+    console.warn('Tarayıcınız konum özelliğini desteklemiyor')
+    return
+  }
+
+  loadingLocation.value = true
+
+  navigator.geolocation.getCurrentPosition(
+    async (position) => {
+      const lat = position.coords.latitude
+      const lng = position.coords.longitude
+
+      try {
+        // Reverse geocoding ile şehir/ülke bilgisi al
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=tr`
+        )
+        const data = await response.json()
+
+        const locationName = data.address?.city ||
+                            data.address?.town ||
+                            data.address?.village ||
+                            data.address?.state ||
+                            data.address?.country ||
+                            'Bilinmeyen Konum'
+
+        selectedLocation.value = {
+          lat,
+          lng,
+          name: locationName,
+          fullAddress: data.display_name
+        }
+
+        $q.notify({
+          type: 'positive',
+          message: `📍 Konumunuz otomatik alındı: ${locationName}`,
+          icon: 'location_on',
+          timeout: 2000
+        })
+      } catch {
+        selectedLocation.value = {
+          lat,
+          lng,
+          name: null
+        }
+        $q.notify({
+          type: 'positive',
+          message: '📍 Konumunuz otomatik alındı',
+          icon: 'location_on',
+          timeout: 2000
+        })
+      } finally {
+        loadingLocation.value = false
+      }
+    },
+    (error) => {
+      loadingLocation.value = false
+      let message = 'Konum alınamadı'
+
+      if (error.code === error.PERMISSION_DENIED) {
+        message = 'Konum izni gerekli. Tarayıcıdan izin verin.'
+      }
+
+      console.warn(message, error)
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0
+    }
+  )
 }
 
 function openStoryDetail(story) {
@@ -1345,6 +1455,12 @@ async function shareStory() {
     score: empathyScore.value.total,
     criteria: empathyScore.value.criteria,
     level: empathyScore.value.level,
+    location: selectedLocation.value ? {
+      lat: selectedLocation.value.lat,
+      lng: selectedLocation.value.lng,
+      name: selectedLocation.value.name,
+      fullAddress: selectedLocation.value.fullAddress
+    } : null,
     analysis: {
       level: empathyScore.value.level,
       criteria: empathyScore.value.criteria,
@@ -1383,6 +1499,11 @@ async function shareStory() {
 
     userStory.value = ''
     empathyScore.value = null
+    selectedLocation.value = null
+
+    // Yeni hikaye için konum al
+    autoGetLocation()
+
     $q.notify({ type: 'positive', message: 'Hikaye paylaşıldı! 🎉', icon: 'celebration' })
   } catch (err) {
     console.error('❌ Hikaye paylaşırken hata:', err)
@@ -1413,6 +1534,8 @@ function loadStories() {
 
 onMounted(() => {
   loadStories()
+  // Otomatik konum alma
+  autoGetLocation()
   // keep a small watcher to reflect auth changes made in boot
   const iv = setInterval(() => { currentUser.value = window.$user || null }, 800)
   onUnmounted(() => clearInterval(iv))
@@ -1614,6 +1737,36 @@ onMounted(() => {
 
 .emoji-btn:hover {
   transform: rotate(20deg) scale(1.2);
+}
+
+.location-btn {
+  transition: all 0.3s ease;
+}
+
+.location-btn:hover {
+  transform: scale(1.15);
+}
+
+/* Konum Display */
+.location-display {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.location-chip {
+  font-size: 14px;
+  font-weight: 600;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 /* Emoji Picker */

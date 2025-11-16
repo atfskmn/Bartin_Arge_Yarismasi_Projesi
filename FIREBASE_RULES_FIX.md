@@ -1,22 +1,18 @@
-# 🔥 Firebase Rules Deployment - ACIL
+# 🔥 Firebase Firestore Güvenlik Kuralları - Güncel
 
-## ❌ Hata
+## 📋 Tüm Kurallar (Son Versiyon)
 
-```
-FirebaseError: Missing or insufficient permissions.
-```
+Firebase Console'dan manuel olarak güncelleyin veya Firebase CLI ile deploy edin.
 
-## ✅ Çözüm: Manuel Deployment
+### 🔗 Firebase Console Linki
 
-### 1️⃣ Firebase Console'a Git
+[Firebase Console - Firestore Rules](https://console.firebase.google.com/project/bartinarge-9f891/firestore/rules)
 
-🔗 **Tıkla**: [Firebase Console - Firestore Rules](https://console.firebase.google.com/project/bartinarge-9f891/firestore/rules)
+---
 
-### 2️⃣ Rules Editor'ü Aç
+## 📝 Güncel Firestore Rules
 
-- Sol menüden: **Firestore Database** → **Rules** sekmesi
-
-### 3️⃣ Aşağıdaki Rules'u Kopyala ve Yapıştır
+Aşağıdaki kuralları kopyalayıp Firebase Console'a yapıştırın:
 
 ```javascript
 rules_version = '2';
@@ -24,30 +20,70 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Users collection
+    // 1. Users collection - kullanıcılar kendi profillerini okuyabilir/yazabilir
     match /users/{userId} {
-      allow read: if true;
+      allow read: if true; // Herkes okuyabilir (profil görüntüleme için)
       allow create: if request.auth != null && request.auth.uid == userId;
       allow update, delete: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Stories collection
+    // 2. Stories collection - oturum açan herkes yazabilir, herkes okuyabilir
     match /stories/{storyId} {
-      allow read: if true;
+      allow read: if true; // Herkes hikayeleri okuyabilir
       allow create: if request.auth != null
                     && request.resource.data.userId == request.auth.uid;
       allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 
-    // Analyses collection
+    // 3. Analyses collection - kullanıcılar sadece kendi analizlerini görebilir
     match /analyses/{analysisId} {
       allow read: if request.auth != null && request.auth.uid == resource.data.userId;
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
       allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
     }
 
-    // User Activities collection
+    // 4. User Activities collection - kullanıcılar sadece kendi aktivitelerini görebilir
     match /userActivities/{activityId} {
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null;
+      allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+
+    // 5. User Achievements collection - kullanıcılar kendi rozetlerini okuyabilir/yazabilir
+    match /userAchievements/{userId} {
+      allow read: if true; // Herkes rozetleri görebilir (profil görüntüleme için)
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null && request.auth.uid == userId;
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // 6. User Presence collection - kullanıcıların çevrimiçi durumu
+    match /userPresence/{userId} {
+      allow read: if request.auth != null; // Giriş yapmış herkes görebilir
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // 7. Messages collection - mesajlaşma
+    match /messages/{messageId} {
+      // Mesajı gönderen veya alan okuyabilir
+      allow read: if request.auth != null &&
+                  (request.auth.uid == resource.data.fromUid ||
+                   request.auth.uid == resource.data.toUid);
+      // Giriş yapan herkes mesaj gönderebilir
+      allow create: if request.auth != null && request.resource.data.fromUid == request.auth.uid;
+      // Sadece mesaj alan kişi güncelleyebilir (okundu işaretlemek için)
+      allow update: if request.auth != null && request.auth.uid == resource.data.toUid;
+      // Mesajı gönderen veya alan silebilir
+      allow delete: if request.auth != null &&
+                    (request.auth.uid == resource.data.fromUid ||
+                     request.auth.uid == resource.data.toUid);
+    }
+  }
+}
+```
+
+---
+
       allow read: if request.auth != null && request.auth.uid == resource.data.userId;
       allow create: if request.auth != null;
       allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
@@ -60,8 +96,10 @@ service cloud.firestore {
       allow update: if request.auth != null && request.auth.uid == userId;
       allow delete: if request.auth != null && request.auth.uid == userId;
     }
-  }
+
 }
+}
+
 ```
 
 ### 4️⃣ Publish Et
@@ -74,9 +112,11 @@ service cloud.firestore {
 1. Tarayıcıyı yenile: `Ctrl + Shift + R`
 2. Hikaye paylaş
 3. Console'da kontrol et:
-   ```
-   ✅ Loaded achievements: [...]
-   ```
+```
+
+✅ Loaded achievements: [...]
+
+````
 
 ## 🎯 Bu Rules Ne Yapar?
 
@@ -86,7 +126,7 @@ service cloud.firestore {
 allow read: if true; // ✅ Herkes rozetleri görebilir
 allow create: if request.auth != null && request.auth.uid == userId;
 allow update: if request.auth != null && request.auth.uid == userId;
-```
+````
 
 **Açıklama**:
 
