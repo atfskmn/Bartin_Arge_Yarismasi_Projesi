@@ -1,1 +1,9 @@
 // app global css in SCSS form
+@import './animations.scss';
+
+// Global Page Styles
+.q-page {
+  position: relative;
+  z-index: 1;
+}
+

@@ -1,0 +1,43 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Users collection - kullanıcılar kendi profillerini okuyabilir/yazabilir
+    match /users/{userId} {
+      allow read: if true; // Herkes okuyabilir (profil görüntüleme için)
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update, delete: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Stories collection - oturum açan herkes yazabilir, herkes okuyabilir
+    match /stories/{storyId} {
+      allow read: if true; // Herkes hikayeleri okuyabilir
+      allow create: if request.auth != null 
+                    && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+    
+    // Analyses collection - kullanıcılar sadece kendi analizlerini görebilir
+    match /analyses/{analysisId} {
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+    
+    // User Activities collection - kullanıcılar sadece kendi aktivitelerini görebilir
+    match /userActivities/{activityId} {
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null;
+      allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+    
+    // User Achievements collection - kullanıcılar kendi rozetlerini okuyabilir/yazabilir
+    match /userAchievements/{userId} {
+      allow read: if true; // Herkes rozetleri görebilir (profil görüntüleme için)
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null && request.auth.uid == userId;
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
