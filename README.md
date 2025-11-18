@@ -234,7 +234,7 @@ Bu proje Bartın Üniversitesi AR-GE Proje Pazarı 2025 kapsamında geliştirilm
 
 Proje ile ilgili sorularınız için:
 
-- E-posta: kvkk@bartin.edu.tr
+- E-posta: atfskmn14@gmail.com
 - Adres: Bartın Üniversitesi
 
 ## Teşekkürler
@@ -243,4 +243,4 @@ Bu proje Bartın Üniversitesi AR-GE ekibi tarafından geliştirilmiştir.
 
 ---
 
-Son Güncelleme: 17 Kasım 2025
+Son Güncelleme: 18 Kasım 2025
