@@ -1,3 +1,5 @@
+# Site url=https://bartinarge.great-site.net
+
 # Dijital Empati Köprüleri
 
 Bartın Üniversitesi AR-GE Proje Pazarı 2025 - Kültürel Dayanışma için Etkileşimli Hikaye Platformu
