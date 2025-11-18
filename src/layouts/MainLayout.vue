@@ -234,6 +234,17 @@
             <q-tooltip>Hikaye Haritası</q-tooltip>
           </q-btn>
           <q-btn
+            v-if="user && isAdmin"
+            flat
+            label="Admin Panel"
+            to="/admin/stories"
+            class="nav-btn"
+            icon="admin_panel_settings"
+            color="red"
+          >
+            <q-tooltip>Tüm Hikayeleri Yönet</q-tooltip>
+          </q-btn>
+          <q-btn
             v-if="!user"
             flat
             label="Giriş / Kayıt"
@@ -367,6 +378,25 @@
           </q-item-section>
         </q-item>
 
+        <!-- Admin Panel for Mobile -->
+        <q-item
+          v-if="user && isAdmin"
+          clickable
+          v-ripple
+          to="/admin/stories"
+          @click="mobileMenuOpen = false"
+        >
+          <q-item-section avatar>
+            <q-icon
+              name="admin_panel_settings"
+              color="red"
+            />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label class="text-red text-weight-bold">Admin Panel</q-item-label>
+          </q-item-section>
+        </q-item>
+
         <q-separator />
 
         <q-item
@@ -438,7 +468,15 @@
         <div class="text-h6 text-weight-bold footer-title q-mb-sm">BARÜ AR-GE Proje Pazarı 2025</div>
         <div class="text-body2 footer-text q-mb-xs">Dijital Empati Köprüleri: Kültürel Dayanışma İçin Etkileşimli Hikaye
           Platformu</div>
-        <div class="text-caption footer-caption">Bartın Üniversitesi • Araştırma ve Geliştirme Projesi</div>
+        <div class="text-caption footer-caption q-mb-sm">Bartın Üniversitesi • Araştırma ve Geliştirme Projesi</div>
+
+        <q-separator
+          class="q-my-sm"
+          style="max-width: 300px; margin: 0 auto;"
+        />
+        <div class="text-body2 text-white q-mt-sm">
+          💻 Powered by <strong>Bayrak Atıf Sekmen</strong>
+        </div>
       </div>
     </q-footer>
   </q-layout>
@@ -459,6 +497,7 @@ const achievementCount = ref(0)
 const showTermsDialog = ref(false)
 const acceptedTerms = ref(false)
 const mobileMenuOpen = ref(false)
+const userRole = ref('user') // Admin role tracking
 
 // LocalStorage'dan onay durumunu kontrol et
 onMounted(() => {
@@ -516,8 +555,29 @@ function updateUser() {
   user.value = window.$user || null
   if (user.value) {
     loadAchievementCount(user.value.uid)
+    loadUserRole(user.value.uid) // Load admin role
   } else {
     achievementCount.value = 0
+    userRole.value = 'user'
+  }
+}
+
+async function loadUserRole(userId) {
+  try {
+    const db = window.$firebase?.db
+    if (!db || !userId) return
+
+    const userRef = doc(db, 'users', userId)
+    const userDoc = await getDoc(userRef)
+
+    if (userDoc.exists()) {
+      userRole.value = userDoc.data().role || 'user'
+    } else {
+      userRole.value = 'user'
+    }
+  } catch (error) {
+    console.error('Error loading user role:', error)
+    userRole.value = 'user'
   }
 }
 
@@ -548,6 +608,8 @@ const initials = computed(() => {
   const name = user.value.displayName || user.value.email || ''
   return name.split(' ').map((s) => s[0]).slice(0, 2).join('').toUpperCase()
 })
+
+const isAdmin = computed(() => userRole.value === 'admin')
 
 function goToMyStories() {
   router.push('/my-stories')

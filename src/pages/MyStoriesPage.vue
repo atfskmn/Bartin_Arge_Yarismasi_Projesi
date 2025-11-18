@@ -105,7 +105,10 @@
               >
                 <div class="text-weight-bold q-mb-xs">{{ getIconMeaning(achievement.icon) }}</div>
                 <div>{{ achievement.description }}</div>
-                <div class="text-caption q-mt-xs" :style="{ color: getRarityColor(achievement.rarity) }">
+                <div
+                  class="text-caption q-mt-xs"
+                  :style="{ color: getRarityColor(achievement.rarity) }"
+                >
                   {{ getRarityLabel(achievement.rarity) }}
                 </div>
               </q-tooltip>
@@ -229,16 +232,97 @@
                 {{ formatDate(story.timestamp) }}
               </q-chip>
             </div>
-            <q-btn
-              flat
-              dense
-              round
-              icon="delete"
-              color="negative"
-              @click="confirmDelete(story.id)"
-            >
-              <q-tooltip>Hikayeyi Sil</q-tooltip>
-            </q-btn>
+            <div class="row q-gutter-xs">
+              <q-btn
+                flat
+                dense
+                round
+                icon="share"
+                color="primary"
+              >
+                <q-tooltip>Paylaş</q-tooltip>
+                <q-menu>
+                  <q-list style="min-width: 150px">
+                    <q-item
+                      clickable
+                      v-close-popup
+                      @click="shareOnTwitter(story)"
+                    >
+                      <q-item-section avatar>
+                        <q-icon
+                          name="fab fa-twitter"
+                          color="blue"
+                        />
+                      </q-item-section>
+                      <q-item-section>Twitter (X)</q-item-section>
+                    </q-item>
+                    <q-item
+                      clickable
+                      v-close-popup
+                      @click="shareOnFacebook(story)"
+                    >
+                      <q-item-section avatar>
+                        <q-icon
+                          name="fab fa-facebook"
+                          color="blue-8"
+                        />
+                      </q-item-section>
+                      <q-item-section>Facebook</q-item-section>
+                    </q-item>
+                    <q-item
+                      clickable
+                      v-close-popup
+                      @click="shareOnInstagram(story)"
+                    >
+                      <q-item-section avatar>
+                        <q-icon
+                          name="fab fa-instagram"
+                          color="pink"
+                        />
+                      </q-item-section>
+                      <q-item-section>Instagram</q-item-section>
+                    </q-item>
+                    <q-item
+                      clickable
+                      v-close-popup
+                      @click="shareOnWhatsApp(story)"
+                    >
+                      <q-item-section avatar>
+                        <q-icon
+                          name="fab fa-whatsapp"
+                          color="green"
+                        />
+                      </q-item-section>
+                      <q-item-section>WhatsApp</q-item-section>
+                    </q-item>
+                    <q-separator />
+                    <q-item
+                      clickable
+                      v-close-popup
+                      @click="copyStoryLink(story)"
+                    >
+                      <q-item-section avatar>
+                        <q-icon
+                          name="content_copy"
+                          color="grey"
+                        />
+                      </q-item-section>
+                      <q-item-section>Bağlantıyı Kopyala</q-item-section>
+                    </q-item>
+                  </q-list>
+                </q-menu>
+              </q-btn>
+              <q-btn
+                flat
+                dense
+                round
+                icon="delete"
+                color="negative"
+                @click="confirmDelete(story.id)"
+              >
+                <q-tooltip>Hikayeyi Sil</q-tooltip>
+              </q-btn>
+            </div>
           </div>
 
           <!-- Story Content -->
@@ -620,6 +704,93 @@ async function deleteStory() {
     storyToDelete.value = null
   }
 }
+
+// Sosyal Medya Paylaşım Fonksiyonları
+function getStoryShareText(story) {
+  const maxLength = 100
+  const storyText = story.story.length > maxLength
+    ? story.story.substring(0, maxLength) + '...'
+    : story.story
+
+  const empathyScore = story.analysis?.totalScore || 0
+  return `🌟 Empati Hikayem (Skor: ${empathyScore}/100)\n\n"${storyText}"\n\n#EmpatiKöprüleri #Hikaye #Empati`
+}
+
+function getStoryUrl(story) {
+  // Hikaye detay sayfası URL'i (gelecekte eklenebilir)
+  return window.location.origin + '/#/stories/' + story.id
+}
+
+function shareOnTwitter(story) {
+  const text = getStoryShareText(story)
+  const url = getStoryUrl(story)
+  const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`
+  window.open(twitterUrl, '_blank', 'width=550,height=420')
+}
+
+function shareOnFacebook(story) {
+  const url = getStoryUrl(story)
+  const text = getStoryShareText(story)
+  const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(text)}`
+  window.open(facebookUrl, '_blank', 'width=555,height=555')
+}
+
+function shareOnInstagram(story) {
+  // Instagram doğrudan web paylaşımı desteklemiyor
+  // Kullanıcıya metin kopyalama ve manuel paylaşım önerisi göster
+  const text = getStoryShareText(story)
+
+  navigator.clipboard.writeText(text).then(() => {
+    $q.notify({
+      type: 'info',
+      message: 'Hikaye metni kopyalandı! Instagram uygulamasını açıp paylaşabilirsiniz.',
+      caption: 'Instagram web üzerinden doğrudan paylaşım desteklemiyor',
+      position: 'top',
+      timeout: 4000,
+      actions: [
+        {
+          label: 'Tamam',
+          color: 'white'
+        }
+      ]
+    })
+  }).catch(err => {
+    console.error('Kopyalama hatası:', err)
+    $q.notify({
+      type: 'negative',
+      message: 'Metin kopyalanamadı',
+      position: 'top'
+    })
+  })
+}
+
+function shareOnWhatsApp(story) {
+  const text = getStoryShareText(story)
+  const url = getStoryUrl(story)
+  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text + '\n\n' + url)}`
+  window.open(whatsappUrl, '_blank')
+}
+
+function copyStoryLink(story) {
+  const url = getStoryUrl(story)
+
+  navigator.clipboard.writeText(url).then(() => {
+    $q.notify({
+      type: 'positive',
+      message: 'Hikaye bağlantısı kopyalandı!',
+      icon: 'content_copy',
+      position: 'top'
+    })
+  }).catch(err => {
+    console.error('Kopyalama hatası:', err)
+    $q.notify({
+      type: 'negative',
+      message: 'Bağlantı kopyalanamadı',
+      position: 'top'
+    })
+  })
+}
+
 </script>
 
 <style scoped>

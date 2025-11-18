@@ -1,29 +1,65 @@
 <template>
   <q-page class="flex flex-center">
-    <q-card class="q-pa-lg" style="max-width:480px; width:100%">
+    <q-card
+      class="q-pa-lg"
+      style="max-width:480px; width:100%"
+    >
       <q-card-section>
         <div class="text-h6">Giriş / Kayıt</div>
       </q-card-section>
 
       <q-card-section>
-        <q-input v-model="displayName" label="Kullanıcı adı (kayıt için)" />
-        <q-input v-model="email" label="E-posta" type="email" class="q-mt-sm" />
-        <q-input v-model="password" label="Parola" type="password" class="q-mt-sm" />
+        <q-input
+          v-model="displayName"
+          label="Kullanıcı adı (kayıt için)"
+        />
+        <q-input
+          v-model="email"
+          label="E-posta"
+          type="email"
+          class="q-mt-sm"
+        />
+        <q-input
+          v-model="password"
+          label="Parola"
+          type="password"
+          class="q-mt-sm"
+        />
 
         <div class="row q-mt-md q-gutter-sm">
-          <q-btn color="primary" label="Giriş Yap" @click="login" :loading="loading" />
-          <q-btn color="secondary" label="Kayıt Ol" @click="register" :loading="loading" />
+          <q-btn
+            color="primary"
+            label="Giriş Yap"
+            @click="login"
+            :loading="loading"
+          />
+          <q-btn
+            color="secondary"
+            label="Kayıt Ol"
+            @click="register"
+            :loading="loading"
+          />
         </div>
 
         <div class="q-mt-md">
-          <q-btn flat label="Empati Sayfasına Git" to="/empathy" />
+          <q-btn
+            flat
+            label="Empati Sayfasına Git"
+            to="/empathy"
+          />
         </div>
       </q-card-section>
 
       <q-separator />
 
       <q-card-actions align="right">
-        <q-btn flat color="negative" label="Çıkış Yap" @click="logout" v-if="user" />
+        <q-btn
+          flat
+          color="negative"
+          label="Çıkış Yap"
+          @click="logout"
+          v-if="user"
+        />
       </q-card-actions>
     </q-card>
   </q-page>
@@ -34,7 +70,7 @@ import { ref, getCurrentInstance, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile } from 'firebase/auth'
-import { doc, setDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore'
+import { doc, setDoc, addDoc, collection, serverTimestamp, getDoc, updateDoc } from 'firebase/firestore'
 
 const $q = useQuasar()
 const { appContext } = getCurrentInstance()
@@ -111,7 +147,7 @@ async function register() {
   } finally {
     loading.value = false
   }
-}async function login() {
+} async function login() {
   const { auth, db } = getServices()
   if (!auth) return
   if (!email.value || !password.value) {
@@ -123,7 +159,67 @@ async function register() {
     const cred = await signInWithEmailAndPassword(auth, email.value, password.value)
     user.value = cred.user
 
-    // Giriş aktivitesi kaydet (ağ hatası olsa bile devam et)
+    // a@gmai.com için otomatik admin rolü ekle
+    console.log('🔍 Giriş yapan email:', cred.user.email)
+    if (cred.user.email === 'a@gmai.com') {
+      console.log('✅ Admin email tespit edildi!')
+      try {
+        const userDocRef = doc(db, 'users', cred.user.uid)
+        console.log('📄 User document ref:', userDocRef.path)
+        const userDoc = await getDoc(userDocRef)
+
+        if (userDoc.exists()) {
+          const userData = userDoc.data()
+          console.log('👤 Mevcut user data:', userData)
+
+          if (!userData.role || userData.role !== 'admin') {
+            console.log('🔧 Admin rolü ekleniyor...')
+            await updateDoc(userDocRef, {
+              role: 'admin'
+            })
+            console.log('✅ Admin rolü başarıyla eklendi!')
+
+            $q.notify({
+              type: 'positive',
+              message: 'Admin yetkisi verildi!',
+              position: 'top',
+              timeout: 2000
+            })
+          } else {
+            console.log('ℹ️ Kullanıcı zaten admin')
+          }
+        } else {
+          // User document yoksa oluştur
+          console.log('⚠️ User document bulunamadı, oluşturuluyor...')
+          await setDoc(userDocRef, {
+            uid: cred.user.uid,
+            email: cred.user.email,
+            displayName: cred.user.displayName || cred.user.email,
+            role: 'admin',
+            createdAt: new Date().toISOString()
+          })
+          console.log('✅ User document ve admin rolü oluşturuldu!')
+
+          $q.notify({
+            type: 'positive',
+            message: 'Admin yetkisi verildi!',
+            position: 'top',
+            timeout: 2000
+          })
+        }
+      } catch (roleErr) {
+        console.error('❌ Admin rolü eklenirken hata:', roleErr)
+        console.error('Hata detayı:', roleErr.code, roleErr.message)
+        $q.notify({
+          type: 'negative',
+          message: 'Admin rolü eklenemedi: ' + roleErr.message,
+          position: 'top',
+          timeout: 3000
+        })
+      }
+    } else {
+      console.log('ℹ️ Normal kullanıcı girişi')
+    }    // Giriş aktivitesi kaydet (ağ hatası olsa bile devam et)
     try {
       await addDoc(collection(db, 'userActivities'), {
         uid: cred.user.uid,

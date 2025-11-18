@@ -9,6 +9,8 @@ const routes = [
       { path: 'map', component: () => import('pages/MapPage.vue') },
       { path: 'login', component: () => import('pages/LoginPage.vue') },
       { path: 'my-stories', component: () => import('pages/MyStoriesPage.vue') },
+      { path: 'admin/stories', component: () => import('pages/AdminStoriesPage.vue') },
+      { path: 'admin/setup', component: () => import('pages/AdminSetupPage.vue') },
     ],
   },
 

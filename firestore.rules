@@ -3,11 +3,18 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
+    // Helper function - Admin kontrolü
+    function isAdmin() {
+      return request.auth != null && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
     // Users collection - kullanıcılar kendi profillerini okuyabilir/yazabilir
     match /users/{userId} {
       allow read: if true; // Herkes okuyabilir (profil görüntüleme için)
       allow create: if request.auth != null && request.auth.uid == userId;
-      allow update, delete: if request.auth != null && request.auth.uid == userId;
+      allow update, delete: if request.auth != null && 
+                            (request.auth.uid == userId || isAdmin());
     }
     
     // Stories collection - oturum açan herkes yazabilir, herkes okuyabilir
@@ -15,14 +22,17 @@ service cloud.firestore {
       allow read: if true; // Herkes hikayeleri okuyabilir
       allow create: if request.auth != null 
                     && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth != null && 
+                            (resource.data.userId == request.auth.uid || isAdmin());
     }
     
     // Analyses collection - kullanıcılar sadece kendi analizlerini görebilir
     match /analyses/{analysisId} {
-      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow read: if request.auth != null && 
+                  (request.auth.uid == resource.data.userId || isAdmin());
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow update, delete: if request.auth != null && 
+                            (request.auth.uid == resource.data.userId || isAdmin());
     }
     
     // User Activities collection - kullanıcılar sadece kendi aktivitelerini görebilir

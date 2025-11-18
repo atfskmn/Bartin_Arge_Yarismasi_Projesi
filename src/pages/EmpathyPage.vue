@@ -26,8 +26,8 @@
       />
       <q-tab
         name="methodology"
-        label="AI Metodolojisi"
-        icon="psychology"
+        label="Puanlama Yöntemi"
+        icon="analytics"
       />
     </q-tabs>
 
@@ -300,17 +300,24 @@
 
                   <!-- Konum Gösterimi -->
                   <transition name="fade">
-                    <div v-if="selectedLocation" class="location-display q-mt-sm">
+                    <div
+                      v-if="selectedLocation"
+                      class="location-display q-mt-sm"
+                    >
                       <q-chip
                         color="green"
                         text-color="white"
                         icon="location_on"
                         class="location-chip"
                       >
-                        📍 {{ selectedLocation.name || `${selectedLocation.lat.toFixed(4)}, ${selectedLocation.lng.toFixed(4)}` }}
+                        📍 {{ selectedLocation.name || `${selectedLocation.lat.toFixed(4)},
+                        ${selectedLocation.lng.toFixed(4)}` }}
                       </q-chip>
                     </div>
-                    <div v-else-if="loadingLocation" class="location-display q-mt-sm">
+                    <div
+                      v-else-if="loadingLocation"
+                      class="location-display q-mt-sm"
+                    >
                       <q-chip
                         color="grey"
                         text-color="white"
@@ -385,19 +392,26 @@
                 <!-- Action Buttons -->
                 <div class="row q-gutter-md">
                   <q-btn
-                    :label="isRecording ? 'Dinleniyor...' : '🎤 Sesli Anlat'"
+                    :label="isRecording ? 'Dinleniyor...' : ($q.screen.lt.sm ? '🎤 Sesli' : '🎤 Sesli Anlat')"
                     :color="isRecording ? 'red' : 'deep-orange'"
                     :icon="isRecording ? 'mic' : 'mic_none'"
                     @click="toggleVoiceRecording"
-                    size="lg"
+                    :size="$q.screen.lt.sm ? 'md' : 'lg'"
                     class="voice-btn"
                     glossy
                     unelevated
+                    :disable="isAnalyzing"
                   >
-                    <q-tooltip v-if="!isRecording">Hikayenizi sesli olarak anlatın</q-tooltip>
+                    <q-tooltip v-if="!isRecording && !$q.screen.lt.sm">Hikayenizi sesli olarak anlatın</q-tooltip>
+                    <q-inner-loading :showing="isRecording">
+                      <q-spinner-audio
+                        size="40px"
+                        color="white"
+                      />
+                    </q-inner-loading>
                   </q-btn>
                   <q-btn
-                    :label="isAnalyzing ? 'Analiz Ediliyor...' : '🔮 Empati Skorunu Hesapla'"
+                    :label="isAnalyzing ? 'Analiz Ediliyor...' : ($q.screen.lt.sm ? '🔮 Analiz' : '🔮 Empati Skorunu Hesapla')"
                     color="purple"
                     icon="psychology"
                     @click="onAnalyze"
@@ -560,15 +574,30 @@
         </div>
       </q-tab-panel>
 
-      <!-- AI Metodolojisi Panel -->
+      <!-- Puanlama Metodolojisi Panel -->
       <q-tab-panel name="methodology">
         <div class="q-pa-md">
           <q-card class="q-pa-lg">
-            <div class="text-h4 text-weight-bold q-mb-md">AI Empati Ölçüm Metodolojisi</div>
-            <div class="text-body1 text-grey-7 q-mb-lg">
-              Yapay zeka sistemimiz, paylaşılan hikayeleri beş temel kritere göre analiz ederek empati skorunu hesaplar.
-              Bu
-              metodoloji, bilimsel araştırmalara ve psikolojik empati teorilerine dayanmaktadır.
+            <div class="text-h4 text-weight-bold q-mb-md">📊 Empati Ölçüm Metodolojisi</div>
+            <div class="text-body1 text-grey-7 q-mb-md">
+              Sistemimiz, paylaşılan hikayeleri <strong>algoritmik metin analizi</strong> yöntemiyle beş temel kritere
+              göre
+              değerlendirerek empati skorunu hesaplar.
+            </div>
+            <div
+              class="text-body2 text-grey-7 q-mb-lg bg-blue-1 q-pa-md"
+              style="border-radius: 8px; border-left: 4px solid #2196f3;"
+            >
+              <q-icon
+                name="info"
+                color="blue"
+                size="sm"
+                class="q-mr-xs"
+              />
+              <strong>Teknik Not:</strong> Bu analiz, doğal dil işleme (NLP) temelli bir algoritma kullanır.
+              Hikayenizdeki belirli kelime ve ifadelerin varlığını, sıklığını ve dağılımını değerlendirerek
+              objektif bir skor üretir. Metodoloji, psikoloji ve empati araştırmalarındaki temel kriterlerden
+              esinlenmiştir.
             </div>
 
             <!-- Kriter 1 -->
@@ -581,17 +610,18 @@
               <q-card-section>
                 <div class="text-h6 text-weight-bold q-mb-sm">1. Duygusal Derinlik (Maks. 25 puan)</div>
                 <div class="text-body2 q-mb-sm">
-                  Hikayede kullanılan duygusal ifadelerin çeşitliliği ve yoğunluğu analiz edilir.
+                  Hikayede kullanılan duygusal kelimelerin çeşitliliği ve yoğunluğu analiz edilir.
                 </div>
                 <div class="text-caption text-grey-7">
-                  <strong>Değerlendirilen terimler:</strong> üzgün, mutlu, korku, umut, sevgi, acı, hüzün, sevinç,
-                  endişe,
-                  öfke, merhamet, şefkat
+                  <strong>Arama Terimleri:</strong> üzgün, mutlu, korku, umut, sevgi, acı, hüzün, sevinç, endişe, öfke,
+                  merhamet, şefkat
                 </div>
                 <div class="text-caption text-grey-7 q-mt-xs">
-                  <strong>Geçerlilik:</strong> Duygusal kelime zenginliği, empati düzeyinin önemli bir göstergesidir
-                  (Hoffman,
-                  2000)
+                  <strong>Hesaplama:</strong> Her duygusal kelime için +5 puan, bonus +5 puan
+                </div>
+                <div class="text-caption text-grey-7 q-mt-xs">
+                  <strong>Bilimsel Dayanak:</strong> Duygusal kelime zenginliği, empati düzeyinin dilsel göstergesidir
+                  (Hoffman, 2000)
                 </div>
               </q-card-section>
             </q-card>
@@ -606,15 +636,18 @@
               <q-card-section>
                 <div class="text-h6 text-weight-bold q-mb-sm">2. Empati İfadeleri (Maks. 25 puan)</div>
                 <div class="text-body2 q-mb-sm">
-                  Başkasının perspektifinden bakma ve duygusal bağlantı kurma yeteneği ölçülür.
+                  Başkasının perspektifinden bakma ve duygusal bağlantı kurma ifadelerinin tespiti.
                 </div>
                 <div class="text-caption text-grey-7">
-                  <strong>Değerlendirilen terimler:</strong> hissettim, anladım, düşündüm, deneyimledim, yaşadım, fark
-                  ettim,
-                  empati, kendimi, onların
+                  <strong>Arama Terimleri:</strong> hissettim, anladım, düşündüm, deneyimledim, yaşadım, fark ettim,
+                  empati,
+                  kendimi, onların, his, duygu, anlıyorum
                 </div>
                 <div class="text-caption text-grey-7 q-mt-xs">
-                  <strong>Geçerlilik:</strong> Perspektif alma becerisinin dilsel göstergeleri (Davis, 1983)
+                  <strong>Hesaplama:</strong> Her empati ifadesi için +4 puan, bonus +5 puan
+                </div>
+                <div class="text-caption text-grey-7 q-mt-xs">
+                  <strong>Bilimsel Dayanak:</strong> Perspektif alma becerisinin dilsel göstergeleri (Davis, 1983)
                 </div>
               </q-card-section>
             </q-card>
@@ -629,14 +662,16 @@
               <q-card-section>
                 <div class="text-h6 text-weight-bold q-mb-sm">3. Hikaye Kalitesi (Maks. 20 puan)</div>
                 <div class="text-body2 q-mb-sm">
-                  Hikayenin uzunluğu ve detay düzeyi değerlendirilir.
+                  Hikayenin kelime sayısı bazlı detay düzeyi değerlendirmesi.
                 </div>
                 <div class="text-caption text-grey-7">
-                  <strong>Puanlama:</strong> 100+ kelime (20p), 50-100 kelime (15p), 20-50 kelime (10p), &lt;20 kelime
-                  (5p)
+                  <strong>Hesaplama:</strong> 100+ kelime (20p), 50-100 kelime (18p), 30-50 kelime (15p), 20-30 kelime
+                  (12p),
+                  &lt;20 kelime (8p)
                 </div>
                 <div class="text-caption text-grey-7 q-mt-xs">
-                  <strong>Geçerlilik:</strong> Detaylı anlatım, empatik düşünmenin göstergesidir
+                  <strong>Bilimsel Dayanak:</strong> Detaylı anlatım, empatik düşünmenin ve bilişsel karmaşıklığın
+                  göstergesidir (Pennebaker & King, 1999)
                 </div>
               </q-card-section>
             </q-card>
@@ -651,14 +686,18 @@
               <q-card-section>
                 <div class="text-h6 text-weight-bold q-mb-sm">4. Kültürel Farkındalık (Maks. 15 puan)</div>
                 <div class="text-body2 q-mb-sm">
-                  Kültürlerarası anlayış ve toplumsal bilinç seviyesi ölçülür.
+                  Kültürel ve toplumsal kavramlara yapılan atıfların tespiti.
                 </div>
                 <div class="text-caption text-grey-7">
-                  <strong>Değerlendirilen terimler:</strong> kültür, toplum, gelenek, değer, insan, dünya, ülke,
-                  insanlık
+                  <strong>Arama Terimleri:</strong> kültür, toplum, gelenek, değer, insan, dünya, ülke, insanlık, aile,
+                  arkadaş
                 </div>
                 <div class="text-caption text-grey-7 q-mt-xs">
-                  <strong>Geçerlilik:</strong> Kültürel empati, toplumsal bağlamı anlama yeteneğini gösterir (Bennett,
+                  <strong>Hesaplama:</strong> Her kültürel terim için +3 puan, bonus +3 puan
+                </div>
+                <div class="text-caption text-grey-7 q-mt-xs">
+                  <strong>Bilimsel Dayanak:</strong> Kültürel empati, toplumsal bağlamı anlama yeteneğini gösterir
+                  (Bennett,
                   1993)
                 </div>
               </q-card-section>
@@ -674,41 +713,90 @@
               <q-card-section>
                 <div class="text-h6 text-weight-bold q-mb-sm">5. Kişisel Bağlantı (Maks. 15 puan)</div>
                 <div class="text-body2 q-mb-sm">
-                  Kişisel deneyimlerle bağlantı kurma ve özdeşleşme düzeyi analiz edilir.
+                  Kişisel zamirler ve yakınlık ifadelerinin kullanım sıklığı.
                 </div>
                 <div class="text-caption text-grey-7">
-                  <strong>Değerlendirilen terimler:</strong> benim, ailem, arkadaşım, çevrem, toplumumuz, biz
+                  <strong>Arama Terimleri:</strong> benim, ailem, arkadaşım, çevrem, toplumumuz, biz, ben, bana, beni
                 </div>
                 <div class="text-caption text-grey-7 q-mt-xs">
-                  <strong>Geçerlilik:</strong> Kişisel bağlantı, empatik tepkinin güçlü bir tetikleyicisidir (Batson et
-                  al.,
-                  1997)
+                  <strong>Hesaplama:</strong> Her kişisel ifade için +3 puan, bonus +3 puan
+                </div>
+                <div class="text-caption text-grey-7 q-mt-xs">
+                  <strong>Bilimsel Dayanak:</strong> Kişisel bağlantı, empatik tepkinin güçlü bir tetikleyicisidir
+                  (Batson et
+                  al., 1997)
                 </div>
               </q-card-section>
             </q-card>
 
             <!-- Güvenilirlik -->
-            <q-card class="bg-purple-1 q-pa-md q-mb-md">
+            <!-- Skor Hesaplama -->
+            <q-card class="bg-green-1 q-pa-md q-mb-md">
               <div class="row items-center q-mb-sm">
                 <q-icon
-                  name="check_circle"
+                  name="calculate"
                   color="green"
                   size="24px"
                   class="q-mr-sm"
                 />
-                <div class="text-h6 text-weight-bold">Güvenilirlik ve Geçerlilik</div>
+                <div class="text-h6 text-weight-bold">Toplam Skor Hesaplama</div>
               </div>
               <div class="text-body2">
-                <p><strong>Bilimsel Temel:</strong> Sistemimiz, psikoloji ve dil bilimi literatüründeki kanıtlanmış
-                  empati
-                  göstergelerini kullanır. Her kriter, akademik araştırmalara dayalı olarak seçilmiştir.</p>
-                <p><strong>Objektif Analiz:</strong> AI sistemi, önyargısız ve tutarlı bir şekilde tüm hikayeleri aynı
-                  kriterlerle değerlendirir. Bu, sonuçların tekrarlanabilirliğini sağlar.</p>
-                <p><strong>Şeffaflık:</strong> Her skorun nasıl hesaplandığı açıkça gösterilir. Kullanıcılar, hangi
-                  kriterlerde yüksek veya düşük puan aldıklarını görebilir.</p>
-                <p><strong>Sürekli Gelişim:</strong> Sistem, topluluk geri bildirimleri ve yeni araştırmalar ışığında
-                  sürekli
-                  olarak iyileştirilmektedir.</p>
+                <p><strong>Maksimum Puan:</strong> 100 (25+25+20+15+15)</p>
+                <p><strong>Seviye Sınıflandırması:</strong></p>
+                <ul>
+                  <li><strong>Çok Yüksek (80-100):</strong> Güçlü empati ifadeleri ve derinlik</li>
+                  <li><strong>Yüksek (60-79):</strong> İyi gelişmiş empati göstergeleri</li>
+                  <li><strong>Orta (40-59):</strong> Temel empati ifadeleri mevcut</li>
+                  <li><strong>Gelişiyor (&lt;40):</strong> Empati ifadesi geliştirilebilir</li>
+                </ul>
+              </div>
+            </q-card>
+
+            <!-- Güvenilirlik ve Sınırlamalar -->
+            <q-card class="bg-purple-1 q-pa-md q-mb-md">
+              <div class="row items-center q-mb-sm">
+                <q-icon
+                  name="info"
+                  color="purple"
+                  size="24px"
+                  class="q-mr-sm"
+                />
+                <div class="text-h6 text-weight-bold">Metodoloji Hakkında</div>
+              </div>
+              <div class="text-body2">
+                <p><strong>Analiz Yöntemi:</strong> Sistemimiz, algoritmik metin analizi (keyword-based NLP) kullanır.
+                  Hikayenizdeki belirli kelimeleri tarar ve her bir kritere göre puanlama yapar.</p>
+                <p><strong>Bilimsel Temel:</strong> Puanlama kriterleri, psikoloji ve dil bilimi literatüründeki
+                  empati göstergelerine dayalıdır. Her kriter, akademik araştırmalarla desteklenmektedir.</p>
+                <p><strong>Objektiflik:</strong> Sistem, tüm hikayeleri aynı kriterlerle değerlendirir.
+                  Bu, sonuçların tutarlı ve tekrarlanabilir olmasını sağlar.</p>
+                <p><strong>Şeffaflık:</strong> Hangi kelimelerin arandığı ve nasıl puanlandığı yukarıda açıkça
+                  belirtilmiştir.
+                </p>
+              </div>
+            </q-card>
+
+            <!-- Sınırlamalar -->
+            <q-card class="bg-orange-1 q-pa-md q-mb-md">
+              <div class="row items-center q-mb-sm">
+                <q-icon
+                  name="psychology"
+                  color="orange"
+                  size="24px"
+                  class="q-mr-sm"
+                />
+                <div class="text-h6 text-weight-bold">Sınırlamalar ve Uyarılar</div>
+              </div>
+              <div class="text-body2">
+                <p><strong>Bağlam Anlayışı:</strong> Sistem, kelimelerin varlığını kontrol eder ancak cümlelerin
+                  derinlemesine anlamsal bağlamını tam olarak analiz edemez.</p>
+                <p><strong>Dilsel Çeşitlilik:</strong> Farklı anlatım tarzları veya eşanlamlı kelimeler
+                  aynı şekilde puanlanmayabilir.</p>
+                <p><strong>Nicel vs. Nitel:</strong> Empati, sayısal olarak tam ölçülebilen bir kavram değildir.
+                  Bu skorlar, empatik ifade düzeyiniz hakkında bir gösterge sunmaktadır.</p>
+                <p><strong>Amaç:</strong> Bu skorlar, kişisel gelişim ve farkındalık amaçlıdır.
+                  Gerçek empati yeteneğinizi tam olarak yansıtmayabilir.</p>
               </div>
             </q-card>
 
@@ -720,21 +808,26 @@
                   color="yellow-8"
                 />
               </template>
-              <div class="text-weight-bold">Önemli Not</div>
+              <div class="text-weight-bold">⚠️ Önemli Not</div>
               <div class="text-caption">
-                Bu empati skorları, kişisel gelişim ve farkındalık amaçlıdır. Hiçbir AI sistemi insan duygularını
-                mükemmel bir
-                şekilde ölçemez. Skorlar, empatik ifade biçiminizi anlamanız ve geliştirmeniz için bir rehber
+                Bu sistem, <strong>yapay zeka tabanlı derin öğrenme değil</strong>, algoritmik metin analizi kullanır.
+                Skorlar, hikayenizdeki belirli kelimelerin varlığına ve sıklığına dayanır.
+                Hiçbir otomatik sistem, insan duygularını ve empatiyi mükemmel şekilde ölçemez.
+                Bu araç, empatik ifade biçiminizi anlamanız ve geliştirmeniz için bir <strong>rehber</strong>
                 niteliğindedir.
               </div>
             </q-banner>
 
             <div class="text-center q-mt-lg text-caption text-grey-6">
               <strong>Akademik Referanslar:</strong><br>
-              Davis, M. H. (1983). Measuring individual differences in empathy.<br>
-              Hoffman, M. L. (2000). Empathy and moral development.<br>
-              Bennett, M. J. (1993). Towards ethnorelativism.<br>
-              Batson, C. D. et al. (1997). Empathy and attitudes.
+              Davis, M. H. (1983). Measuring individual differences in empathy: Evidence for a multidimensional
+              approach.<br>
+              Hoffman, M. L. (2000). Empathy and moral development: Implications for caring and justice.<br>
+              Bennett, M. J. (1993). Towards ethnorelativism: A developmental model of intercultural sensitivity.<br>
+              Batson, C. D. et al. (1997). Empathy and attitudes: Can feeling for a member of a stigmatized group
+              improve
+              feelings toward the group?<br>
+              Pennebaker, J. W., & King, L. A. (1999). Linguistic styles: Language use as an individual difference.
             </div>
           </q-card>
         </div>
@@ -773,15 +866,27 @@
       v-model="storyDetailDialog"
       :maximized="$q.screen.lt.sm"
     >
-      <q-card style="min-width: 600px; max-width: 800px">
+      <q-card :style="$q.screen.lt.sm ? 'width: 100vw' : 'min-width: 600px; max-width: 800px'">
         <q-card-section class="bg-purple text-white">
           <div class="row items-center">
             <div class="col">
-              <div class="text-h5 text-weight-bold">{{ selectedStory?.username }}</div>
+              <div
+                :class="$q.screen.lt.sm ? 'text-h6' : 'text-h5'"
+                class="text-weight-bold"
+              >{{ selectedStory?.username }}
+              </div>
               <div class="text-caption">{{ formatDate(selectedStory?.createdAt) }}</div>
-              <div v-if="selectedStory?.location" class="text-caption q-mt-xs">
-                <q-icon name="location_on" size="xs" class="q-mr-xs" />
-                {{ selectedStory.location.name || `${selectedStory.location.lat.toFixed(4)}, ${selectedStory.location.lng.toFixed(4)}` }}
+              <div
+                v-if="selectedStory?.location"
+                class="text-caption q-mt-xs"
+              >
+                <q-icon
+                  name="location_on"
+                  size="xs"
+                  class="q-mr-xs"
+                />
+                {{ selectedStory.location.name || `${selectedStory.location.lat.toFixed(4)},
+                ${selectedStory.location.lng.toFixed(4)}` }}
               </div>
             </div>
             <div class="col-auto">
@@ -1029,11 +1134,11 @@ function autoGetLocation() {
         const data = await response.json()
 
         const locationName = data.address?.city ||
-                            data.address?.town ||
-                            data.address?.village ||
-                            data.address?.state ||
-                            data.address?.country ||
-                            'Bilinmeyen Konum'
+          data.address?.town ||
+          data.address?.village ||
+          data.address?.state ||
+          data.address?.country ||
+          'Bilinmeyen Konum'
 
         selectedLocation.value = {
           lat,
@@ -1162,9 +1267,10 @@ async function onAnalyze() {
 function initSpeechRecognition() {
   if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
     $q.notify({
-      type: 'negative',
-      message: 'Tarayıcınız sesli anlatımı desteklemiyor. Chrome veya Edge kullanmayı deneyin.',
-      timeout: 5000
+      type: 'warning',
+      message: 'Tarayıcınız sesli anlatımı desteklemiyor. Chrome veya Safari kullanmayı deneyin.',
+      timeout: 5000,
+      actions: [{ label: 'Tamam', color: 'white' }]
     })
     return null
   }
@@ -1172,9 +1278,11 @@ function initSpeechRecognition() {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
   const recognitionInstance = new SpeechRecognition()
 
-  recognitionInstance.continuous = true // Sürekli dinle
+  // Mobil cihazlar için optimize edilmiş ayarlar
+  recognitionInstance.continuous = $q.platform.is.mobile ? false : true // Mobilde tek seferde dinle
   recognitionInstance.interimResults = true // Ara sonuçları göster
   recognitionInstance.lang = 'tr-TR' // Türkçe dil desteği
+  recognitionInstance.maxAlternatives = 1
 
   recognitionInstance.onstart = () => {
     console.log('🎤 Sesli anlatım başladı')
@@ -1231,12 +1339,26 @@ function initSpeechRecognition() {
     isRecording.value = false
 
     if (userStory.value.trim()) {
-      $q.notify({
-        type: 'positive',
-        message: '✅ Hikayeniz metne çevrildi!',
-        icon: 'check_circle',
-        timeout: 2000
-      })
+      // Mobilde otomatik yeniden başlatma seçeneği sun
+      if ($q.platform.is.mobile) {
+        $q.notify({
+          type: 'positive',
+          message: '✅ Hikayeniz metne çevrildi! Devam etmek için tekrar tıklayın.',
+          icon: 'check_circle',
+          timeout: 3000,
+          actions: [
+            { label: 'Devam Et', color: 'white', handler: () => { startVoiceRecognition() } },
+            { label: 'Tamam', color: 'white' }
+          ]
+        })
+      } else {
+        $q.notify({
+          type: 'positive',
+          message: '✅ Hikayeniz metne çevrildi!',
+          icon: 'check_circle',
+          timeout: 2000
+        })
+      }
     }
   }
 
@@ -1251,19 +1373,23 @@ function toggleVoiceRecording() {
     }
     isRecording.value = false
   } else {
-    // Başlat
-    recognition.value = initSpeechRecognition()
-    if (recognition.value) {
-      try {
-        recognition.value.start()
-      } catch (error) {
-        console.error('Sesli anlatım başlatılamadı:', error)
-        $q.notify({
-          type: 'negative',
-          message: 'Sesli anlatım başlatılamadı. Mikrofon izni verin.',
-          timeout: 3000
-        })
-      }
+    // Başlat - Tarayıcı otomatik izin isteyecek
+    startVoiceRecognition()
+  }
+}
+
+function startVoiceRecognition() {
+  recognition.value = initSpeechRecognition()
+  if (recognition.value) {
+    try {
+      recognition.value.start()
+    } catch (error) {
+      console.error('Sesli anlatım başlatılamadı:', error)
+      $q.notify({
+        type: 'negative',
+        message: 'Sesli anlatım başlatılamadı. Mikrofon izni vermeniz gerekiyor.',
+        timeout: 3000
+      })
     }
   }
 }
@@ -1763,6 +1889,7 @@ onMounted(() => {
     opacity: 0;
     transform: translateX(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);

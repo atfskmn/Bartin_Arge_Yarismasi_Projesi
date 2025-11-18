@@ -5,7 +5,7 @@
         <div class="text-h2 text-weight-bold q-mb-md animated-title">
           Arge Proje Pazarı 2025
         </div>
-        <div class="text-h5 animated-subtitle">
+        <div class="text-h5 animated-subtitle q-mb-xl">
           Uygulama Web Sitesi
         </div>
       </div>
@@ -33,7 +33,7 @@ onMounted(() => {
   })
 })
 
-function updateUser() {
+async function updateUser() {
   const currentUser = window.$user
   if (currentUser && !user.value) {
     user.value = currentUser
@@ -62,9 +62,11 @@ async function initPresence() {
   0% {
     background-position: 0% 50%;
   }
+
   50% {
     background-position: 100% 50%;
   }
+
   100% {
     background-position: 0% 50%;
   }
@@ -86,6 +88,7 @@ async function initPresence() {
     opacity: 0;
     transform: translateY(50px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -101,18 +104,24 @@ async function initPresence() {
 }
 
 @keyframes titlePulse {
-  0%, 100% {
+
+  0%,
+  100% {
     text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 40px rgba(255, 255, 255, 0.1);
   }
+
   50% {
     text-shadow: 0 4px 30px rgba(0, 0, 0, 0.4), 0 0 60px rgba(255, 255, 255, 0.3);
   }
 }
 
 @keyframes float {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0px);
   }
+
   50% {
     transform: translateY(-10px);
   }
@@ -120,24 +129,50 @@ async function initPresence() {
 
 .animated-subtitle {
   color: rgba(255, 255, 255, 0.95) !important;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-  animation: fadeIn 2s ease-out 0.5s both, subtitleGlow 4s ease-in-out infinite;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  animation: subtitleFade 1.5s ease-out 0.3s both;
   letter-spacing: 1px;
+}
+
+.admin-btn {
+  font-size: 1.1rem;
+  padding: 16px 32px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(255, 0, 0, 0.3);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 8px 20px rgba(255, 0, 0, 0.3);
+  }
+
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 12px 30px rgba(255, 0, 0, 0.5);
+  }
 }
 
 @keyframes fadeIn {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
 }
 
 @keyframes subtitleGlow {
-  0%, 100% {
+
+  0%,
+  100% {
     text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
   }
+
   50% {
     text-shadow: 0 2px 20px rgba(255, 255, 255, 0.5), 0 0 30px rgba(255, 255, 255, 0.2);
   }

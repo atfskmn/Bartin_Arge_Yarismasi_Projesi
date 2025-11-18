@@ -93,6 +93,12 @@
               <q-item-section>
                 <q-item-label class="text-h6 text-weight-bold">
                   {{ user.displayName || user.email }}
+                  <q-badge
+                    v-if="user.role === 'admin'"
+                    color="red"
+                    label="YÖNETİCİ"
+                    class="q-ml-sm"
+                  />
                 </q-item-label>
                 <q-item-label
                   caption
@@ -115,6 +121,16 @@
                   >
                     • {{ formatLastSeen(user.lastSeen) }}
                   </span>
+                </q-item-label>
+                <q-item-label
+                  caption
+                  class="text-purple-8 q-mt-xs"
+                >
+                  <q-icon
+                    name="emoji_events"
+                    size="xs"
+                  />
+                  <span class="text-weight-bold">{{ user.badgeCount || 0 }}</span> rozet
                 </q-item-label>
               </q-item-section>
 
@@ -176,7 +192,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { collection, query, onSnapshot, where, getDocs } from 'firebase/firestore'
+import { collection, query, onSnapshot, where, getDocs, doc, getDoc } from 'firebase/firestore'
 import ChatDialog from 'components/ChatDialog.vue'
 
 const allUsers = ref([])
@@ -219,10 +235,42 @@ async function loadAllUsers() {
         uid: data.uid,
         email: data.email,
         displayName: data.displayName,
+        role: data.role || 'user', // admin veya user
         isOnline: false,
-        lastSeen: null
+        lastSeen: null,
+        badgeCount: 0
       })
     })
+
+    // Tüm kullanıcıların rozet sayılarını al
+    console.log('🏆 Rozet sayıları çekiliyor...')
+    for (const [uid, user] of usersMap.entries()) {
+      try {
+        // userAchievements/{userId} document yapısı kullanılıyor
+        const achievementDocRef = doc(db, 'userAchievements', uid)
+        const achievementDoc = await getDoc(achievementDocRef)
+
+        if (achievementDoc.exists()) {
+          const data = achievementDoc.data()
+          const achievements = data.achievements || []
+          user.badgeCount = achievements.length
+          console.log(`✅ ${user.email}: ${user.badgeCount} rozet`)
+
+          if (achievements.length > 0) {
+            achievements.slice(0, 2).forEach(a => {
+              console.log(`   └─ ${a.icon} ${a.name}`)
+            })
+          }
+        } else {
+          user.badgeCount = 0
+          console.log(`⚪ ${user.email}: Henüz rozet yok`)
+        }
+      } catch (error) {
+        console.error(`❌ ${uid} için rozet sayısı alınamadı:`, error)
+        user.badgeCount = 0
+      }
+    }
+    console.log('🏆 Tüm rozet sayıları yüklendi!')
 
     // Presence bilgilerini dinle
     const presenceRef = collection(db, 'userPresence')
@@ -245,20 +293,25 @@ async function loadAllUsers() {
           const user = usersMap.get(data.uid)
           user.isOnline = isOnline
           user.lastSeen = data.lastSeen
+          // badgeCount'u koru!
         }
         // Presence'de var ama users'da yoksa EKLEME (silinmiş kullanıcı olabilir)
       })
 
       console.log('🟢 Çevrimiçi kullanıcı sayısı:', onlineCount)
       console.log('👤 Toplam kullanıcı sayısı (usersMap):', usersMap.size)
+      console.log('🏆 Rozet sayıları:', Array.from(usersMap.values()).map(u => ({ uid: u.uid, badges: u.badgeCount })))
 
       allUsers.value = Array.from(usersMap.values())
         .filter(u => u.uid !== currentUser.value?.uid)
         .sort((a, b) => {
-          // Önce online olanlar
+          // Önce adminler
+          if (a.role === 'admin' && b.role !== 'admin') return -1
+          if (a.role !== 'admin' && b.role === 'admin') return 1
+          // Sonra online olanlar
           if (a.isOnline && !b.isOnline) return -1
           if (!a.isOnline && b.isOnline) return 1
-          // Sonra isme göre
+          // Son olarak isme göre
           const nameA = a.displayName || a.email || ''
           const nameB = b.displayName || b.email || ''
           return nameA.localeCompare(nameB, 'tr')
